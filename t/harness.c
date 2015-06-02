@@ -3,6 +3,9 @@
 
 #include <stdio.h>
 #include <string.h>
+#ifdef _MSC_VER
+# include <malloc.h>
+#endif
 
 #define streq(a,b) (!strcmp(a,b))
 #define strstartswith(a,b) (!strncmp(a,b,strlen(b)))
@@ -569,7 +572,7 @@ int main(int argc, char **argv)
       char *bytes = line + 6;
       size_t len = inplace_hex2bytes(bytes);
 
-      uint32_t cp[len];
+      uint32_t *cp = alloca(sizeof(uint32_t)*len);
       int cpi = 0;
       size_t pos = 0;
 
@@ -872,7 +875,7 @@ int main(int argc, char **argv)
 
     size_t outlen = vterm_output_get_buffer_current(vt);
     if(outlen > 0) {
-      char outbuff[outlen];
+      char *outbuff = alloca(sizeof(char)*outlen);
       vterm_output_read(vt, outbuff, outlen);
 
       printf("output ");

@@ -2,6 +2,15 @@
 
 #include <stdio.h>
 #include <string.h>
+#ifdef _MSC_VER
+# include <malloc.h>
+#else
+# ifndef alloca
+// In GCC alloca() is not be available with std=c99
+// use builtin instead, but MinGW already has a define
+#  define alloca(size) __builtin_alloca(size)
+# endif
+#endif
 
 #define strneq(a,b,n) (strncmp(a,b,n)==0)
 
@@ -236,7 +245,7 @@ static int on_text(const char bytes[], size_t len, void *user)
   VTermPos oldpos = state->pos;
 
   // We'll have at most len codepoints
-  uint32_t codepoints[len];
+  uint32_t *codepoints = alloca(len*sizeof(uint32_t));
   int npoints = 0;
   size_t eaten = 0;
 
@@ -313,7 +322,7 @@ static int on_text(const char bytes[], size_t len, void *user)
 
     int width = 0;
 
-    uint32_t chars[glyph_ends - glyph_starts + 1];
+    uint32_t *chars = alloca(sizeof(uint32_t)*(glyph_ends - glyph_starts + 1));
 
     for( ; i < glyph_ends; i++) {
       chars[i - glyph_starts] = codepoints[i];
@@ -512,7 +521,7 @@ static int settermprop_int(VTermState *state, VTermProp prop, int v)
 
 static int settermprop_string(VTermState *state, VTermProp prop, const char *str, size_t len)
 {
-  char strvalue[len+1];
+  char *strvalue = alloca(sizeof(char)*(len+1));
   strncpy(strvalue, str, len);
   strvalue[len] = 0;
 
